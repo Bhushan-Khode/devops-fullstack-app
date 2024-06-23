@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: application-deployment
+  name: devops-fullstack-app-deployment
 spec:
   selector:
     matchLabels:
-      app: application
+      app: devops-fullstack-app
   replicas: 2
   template:
     metadata:
       labels:
-        app: application
+        app: devops-fullstack-app
     spec:
       containers:
-        - name: application
+        - name: devops-fullstack-app
           image: bhushankhode09/Application:latest
           imagePullPolicy: Always
           ports:
@@ -24,10 +24,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: application-ssvc
+  name: devops-fullstack-app-ssvc
 spec:
   selector:
-    app: application
+    app: devops-fullstack-app
   ports:
     - protocol: "TCP"
       port: 8080
