@@ -1,0 +1,58 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_HUB_CREDENTIALS = credentials('dockerhub-credentials')
+        KUBECONFIG_CONTENT = credentials('kubeconfig-content')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Frontend') {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'DOCKER_HUB_CREDENTIALS') {
+                        def frontendImage = docker.build("bhushankhode09/frontend-app:latest", "frontend")
+                        frontendImage.push()
+                    }
+                }
+            }
+        }
+
+        stage('Build Backend') {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'DOCKER_HUB_CREDENTIALS') {
+                        def backendImage = docker.build("bhushankhode09/backend-app:latest", "backend")
+                        backendImage.push()
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    sh '''
+                    mkdir -p $HOME/.kube
+                    echo "$KUBECONFIG_CONTENT" > $HOME/.kube/config
+                    kubectl apply -f k8s-frontend.yaml
+                    kubectl apply -f k8s-backend.yaml
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
+
